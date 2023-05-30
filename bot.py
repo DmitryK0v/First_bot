@@ -12,7 +12,8 @@ bot = TelegramClient('test_bot', API_ID, API_HASH).start(bot_token=API_BOT_TOKEN
 
 wait_captcha = {}
 capt = Captcha()
-bad_words = ['Сука', 'Блять', 'Нахуй', 'Довбойоб', 'Придурок', 'сука', 'блять', 'нахуй', 'довбойоб', 'придурок']
+bad_words = ['сука', 'блять', 'нахуй', 'довбойоб', 'придурок', 'сучка', 'падаль', 'хер', 'залупа', 'хуй']
+bad_participants = {}
 
 
 @bot.on(events.ChatAction)
@@ -56,14 +57,28 @@ async def captcha_message_checking(event):
                                        file='Gifs/Buddy.mp4')
                 del wait_captcha[(peer_user.user_id, peer_channel.channel_id)]
                 return
-        if any(bad_word in event.text for bad_word in bad_words):
+        if any(bad_word in event.text.lower() for bad_word in bad_words):
+            if not bad_participants.get((peer_user.user_id, peer_channel.channel_id)):
+                bad_participants[(peer_user.user_id, peer_channel.channel_id)] = 1
+            else:
+                bad_participants[(peer_user.user_id, peer_channel.channel_id)] += 1
+
             await bot.delete_messages(
                 entity=peer_channel,
                 message_ids=[event.message]
             )
-            await bot.send_message(
-                entity=peer_channel,
-                message=f'An unpleasant word was found, The {user_entity.first_name} has been warned.')
+            if user_entity.username is not None:
+                await bot.send_message(
+                    entity=peer_channel,
+                    message=f'An unpleasant word was found, The @{user_entity.username} has been warned '
+                            f'{bad_participants[(peer_user.user_id, peer_channel.channel_id)]}/3 times.')
+            else:
+                await bot.send_message(
+                    entity=peer_channel,
+                    message=f'An unpleasant word was found, The {user_entity.first_name} has been warned '
+                            f'{bad_participants[(peer_user.user_id, peer_channel.channel_id)]}/3 times.')
+            if bad_participants[(peer_user.user_id, peer_channel.channel_id)] == 3:
+                await bot.kick_participant(entity=peer_channel, user=peer_user)
 
 
 @bot.on(events.NewMessage(pattern='/start'))
