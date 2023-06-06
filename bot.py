@@ -1,12 +1,19 @@
 import os
+import time
+
 from telethon.sync import TelegramClient, events
-from telethon.tl.types import PeerChannel
+from telethon.tl.types import (
+    PeerChannel, PeerUser,
+    ReplyKeyboardMarkup, ReplyInlineMarkup,
+    KeyboardButtonRow, KeyboardButton
+)
 
 from captcha_script import Captcha
 
 API_ID = int(os.environ['API_ID'])
 API_HASH = os.environ['API_HASH']
 API_BOT_TOKEN = os.environ['API_BOT_TOKEN']
+
 
 bot = TelegramClient('test_bot', API_ID, API_HASH).start(bot_token=API_BOT_TOKEN)
 
@@ -83,7 +90,63 @@ async def captcha_message_checking(event):
 
 @bot.on(events.NewMessage(pattern='/start'))
 async def start(event):
-    await event.respond('Fuck off')
+    await event.respond('Fuck off dude, give me a fucking rest!')
+    if isinstance(event.peer_id, PeerChannel):
+        keybord_buttons = ReplyKeyboardMarkup(
+            [
+                KeyboardButtonRow(
+                    [
+                        KeyboardButton(text='Action')
+                    ]
+                )
+            ]
+        )
+        await bot.send_message(
+            entity=event.peer_id,
+            message='Make your choice',
+            buttons=keybord_buttons
+        )
+
+
+@bot.on(events.NewMessage(pattern='Action'))
+async def actions(event):
+    user_entity = await bot.get_entity(event.from_id)
+    if isinstance(event.peer_id, PeerChannel):
+        keybord_buttons = ReplyKeyboardMarkup(
+            [
+                KeyboardButtonRow(
+                    [
+                        KeyboardButton(text='Memes'),
+                        KeyboardButton(text='Scientis'),
+                        KeyboardButton(text='Music'),
+
+                    ]
+                ),
+                KeyboardButtonRow(
+                    [
+                        KeyboardButton(text='Cats'),
+                        KeyboardButton(text='Space'),
+                        KeyboardButton(text='Awww'),
+                    ],
+                )
+            ]
+        )
+        await bot.send_message(
+            entity=event.peer_id,
+            message=f'@{user_entity.username}, choose your type of memes and get fun',
+            buttons=keybord_buttons
+        )
+        time.sleep(10)
+        await bot.delete_messages(
+            entity=event.peer_id,
+            message_ids=[event.message.id + 2, event.message.id + 1, event.message.id, event.message.id - 1,
+                         event.message.id - 2, event.message.id - 3]
+        )
+
+
+@bot.on(events.NewMessage(pattern='Memes'))
+async def memes(event):
+    pass
 
 
 def main():
