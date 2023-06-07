@@ -1,6 +1,6 @@
 import os
 import time
-
+import asyncpraw
 from telethon.sync import TelegramClient, events
 from telethon.tl.types import (
     PeerChannel, PeerUser,
@@ -14,7 +14,12 @@ API_ID = int(os.environ['API_ID'])
 API_HASH = os.environ['API_HASH']
 API_BOT_TOKEN = os.environ['API_BOT_TOKEN']
 
-
+reddit = asyncpraw.Reddit(
+    client_id=os.environ["REDDIT_CLIENT_ID"],
+    client_secret=os.environ["REDDIT_CLIENT_SECRET"],
+    user_agent="python:TelegBotMemes:v1 (by u/Kaadis)"
+)
+buttons_name = ("Memes", "ScienceMemes", "Music", "Cats", "Space", "Awww")
 bot = TelegramClient('test_bot', API_ID, API_HASH).start(bot_token=API_BOT_TOKEN)
 
 wait_captcha = {}
@@ -103,7 +108,7 @@ async def start(event):
         )
         await bot.send_message(
             entity=event.peer_id,
-            message='Make your choice',
+            message='Make your choice.',
             buttons=keybord_buttons
         )
 
@@ -116,37 +121,92 @@ async def actions(event):
             [
                 KeyboardButtonRow(
                     [
-                        KeyboardButton(text='Memes'),
-                        KeyboardButton(text='Scientis'),
-                        KeyboardButton(text='Music'),
+                        KeyboardButton(text=buttons_name[0]),
+                        KeyboardButton(text=buttons_name[1]),
+                        KeyboardButton(text=buttons_name[2]),
 
                     ]
                 ),
                 KeyboardButtonRow(
                     [
-                        KeyboardButton(text='Cats'),
-                        KeyboardButton(text='Space'),
-                        KeyboardButton(text='Awww'),
+                        KeyboardButton(text=buttons_name[3]),
+                        KeyboardButton(text=buttons_name[4]),
+                        KeyboardButton(text=buttons_name[5]),
                     ],
                 )
             ]
         )
         await bot.send_message(
             entity=event.peer_id,
-            message=f'@{user_entity.username}, choose your type of memes and get fun',
+            message=f'@{user_entity.username}, choose your type of memes and get fun.',
             buttons=keybord_buttons
         )
-        time.sleep(10)
+        time.sleep(2)
         await bot.delete_messages(
             entity=event.peer_id,
             message_ids=[event.message.id + 2, event.message.id + 1, event.message.id, event.message.id - 1,
                          event.message.id - 2, event.message.id - 3]
+
         )
 
 
-@bot.on(events.NewMessage(pattern='Memes'))
+async def reddits(event, name):
+    subreddit = await reddit.subreddit(name)
+    if name == 'indie_rock':
+        async for submission in subreddit.new(limit=1):
+            await bot.send_message(
+                entity=event.chat,
+                message=submission.url,
+            )
+    else:
+        async for submission in subreddit.new(limit=10):
+            if submission.url[-4:] in ['.jpg', '.gif', '.png', ]:
+                if isinstance(event.peer_id, PeerUser):
+                    entity = event.peer_id
+                else:
+                    entity = event.chat
+                await bot.send_message(
+                    entity=entity,
+                    message=submission.title,
+                    file=submission.url
+                )
+                break
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[0]))
 async def memes(event):
-    pass
+    name = 'memes'
+    await reddits(event, name)
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[1]))
+async def sciencememes(event):
+    name = 'sciencememes'
+    await reddits(event, name)
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[2]))
+async def sciencememes(event):
+    name = 'indie_rock'
+    await reddits(event, name)
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[3]))
+async def sciencememes(event):
+    name = 'cats'
+    await reddits(event, name)
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[4]))
+async def sciencememes(event):
+    name = 'spaceporn'
+    await reddits(event, name)
+
+
+@bot.on(events.NewMessage(pattern=buttons_name[5]))
+async def sciencememes(event):
+    name = 'aww'
+    await reddits(event, name)
 
 
 def main():
