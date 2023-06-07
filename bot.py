@@ -207,7 +207,4 @@ async def sciencememes(event):
     name = 'aww'
     await reddits(event, name)
 
-
-if __name__ == "__main__":
-    bot.start()
-    bot.run_until_disconnected()
+bot.run_until_disconnected()
