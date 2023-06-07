@@ -5,14 +5,17 @@ captcha_length = 5
 
 
 def generate_captcha_text():
+    """Generate text for captcha image.
+    Each picture should have different text."""
     nums = []
     for i in range(captcha_length):
-        nums.append(str(randint(0, 9)))
+        nums.append(str(randint(0, 9)))  # For the uniqueness of the text in the picture, we use random.
     captcha_text = ''.join(nums)
     return captcha_text
 
 
 class Captcha:
+    """Using library capthca"""
     captcha_text = ''
     captcha_image = None
 
