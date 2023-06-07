@@ -208,10 +208,6 @@ async def sciencememes(event):
     await reddits(event, name)
 
 
-@server.route('/')
-def main():
-    bot.run_until_disconnected()
-
-
 if __name__ == "__main__":
-    server.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    bot.start()
+    bot.run_until_disconnected()
