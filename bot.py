@@ -1,32 +1,19 @@
 import os
 import time
-import asyncpraw
+
+from flask import Flask
+
+from config import (API_ID, API_HASH, API_BOT_TOKEN, wait_captcha, capt,
+                    bad_participants, buttons_name, reddit, bad_words,)
 from telethon.sync import TelegramClient, events
-from telethon.tl.types import (
-    PeerChannel, PeerUser,
-    ReplyKeyboardMarkup,
-    KeyboardButtonRow, KeyboardButton
-)
+from telethon.tl.types import (PeerChannel, PeerUser, ReplyKeyboardMarkup,
+                               KeyboardButtonRow, KeyboardButton
+                               )
 
-from captcha_script import Captcha
-
-API_ID = int(os.environ['API_ID'])
-API_HASH = os.environ['API_HASH']
-API_BOT_TOKEN = os.environ['API_BOT_TOKEN']
-
-reddit = asyncpraw.Reddit(
-    client_id=os.environ["REDDIT_CLIENT_ID"],
-    client_secret=os.environ["REDDIT_CLIENT_SECRET"],
-    user_agent="python:TelegBotMemes:v1 (by u/Kaadis)"
-)
-buttons_name = ("Memes", "ScienceMemes", "Music", "Cats", "Space", "Awww")
 bot = TelegramClient('test_bot', API_ID, API_HASH).start(bot_token=API_BOT_TOKEN)
 
-wait_captcha = {}
-capt = Captcha()
-bad_words = ['сука', 'блять', 'нахуй', 'довбойоб', 'придурок', 'сучка', 'падаль', 'хер', 'залупа', 'хуй', 'бля', 'лох']
-bad_participants = {}
-
+PORT = int(os.environ.get('PORT', 5000))
+server = Flask(__name__)
 
 @bot.on(events.ChatAction)
 async def chat_greeting(event):
@@ -221,9 +208,10 @@ async def sciencememes(event):
     await reddits(event, name)
 
 
+@server.route('/')
 def main():
     bot.run_until_disconnected()
 
 
 if __name__ == "__main__":
-    main()
+    server.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
