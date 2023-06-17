@@ -1,7 +1,6 @@
-import os
+
 import time
 
-from flask import Flask
 
 from config import (API_ID, API_HASH, API_BOT_TOKEN, wait_captcha, capt,
                     bad_participants, buttons_name, reddit, bad_words,)
@@ -11,9 +10,6 @@ from telethon.tl.types import (PeerChannel, PeerUser, ReplyKeyboardMarkup,
                                )
 
 bot = TelegramClient('test_bot', API_ID, API_HASH).start(bot_token=API_BOT_TOKEN)
-
-PORT = int(os.environ.get('PORT', 5000))
-server = Flask(__name__)
 
 @bot.on(events.ChatAction)
 async def chat_greeting(event):
@@ -207,4 +203,10 @@ async def sciencememes(event):
     name = 'aww'
     await reddits(event, name)
 
-bot.run_until_disconnected()
+
+def main():
+    bot.run_until_disconnected()
+
+
+if __name__ == "__main__":
+    main()
